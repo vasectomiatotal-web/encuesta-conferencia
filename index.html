@@ -117,8 +117,9 @@
             const btn = document.getElementById('btnStart');
             btn.disabled = true;
 
-            // Asignar aleatoriamente (más robusto cuando todos entran al mismo tiempo)
-            const asignacion = Math.floor(Math.random() * 3);
+            // Asignar aleatoriamente
+            const seed = Date.now() + Math.random();
+            const asignacion = Math.floor((seed * 1000) % 3);
             
             localStorage.setItem(STORAGE_KEY, 'true');
             form_seleccionado = FORMS[asignacion].url;
