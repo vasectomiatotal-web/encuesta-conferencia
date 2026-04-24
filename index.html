@@ -108,6 +108,13 @@
         var form_seleccionado = '';
 
         function iniciar_encuesta() {
+            // Verificar si hay reset global
+            const ultimoReset = localStorage.getItem('ultimo_reset');
+            const resetActual = localStorage.getItem('reset_actual');
+            if (ultimoReset !== resetActual) {
+                localStorage.removeItem(STORAGE_KEY);
+            }
+
             const yaParticipo = localStorage.getItem(STORAGE_KEY);
             if (yaParticipo) {
                 document.getElementById('message').innerHTML = '<p class="error">⚠️ Ya has participado. ¡Gracias!</p>';
@@ -123,6 +130,9 @@
             
             localStorage.setItem(STORAGE_KEY, 'true');
             form_seleccionado = FORMS[asignacion].url;
+            
+            // Guardar timestamp para posible reset global
+            localStorage.setItem('reset_actual', Date.now().toString());
             
             document.getElementById('pantalla-inicio').style.display = 'none';
             document.getElementById('pantalla-asignacion').style.display = 'block';

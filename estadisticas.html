@@ -154,6 +154,10 @@
             
             try {
                 await fetch(`${APPS_SCRIPT_URL}?action=reset`);
+                
+                // Guardar timestamp para reset global
+                localStorage.setItem('ultimo_reset', Date.now().toString());
+                
                 await actualizar_estadisticas();
                 btn.textContent = '✅ ¡Reiniciado!';
                 setTimeout(() => { btn.textContent = '🔄 Reiniciar Conteos'; btn.disabled = false; }, 2000);
