@@ -75,17 +75,8 @@
         <h1>🎤 Encuesta de Conferencia</h1>
         <p>Click en el botón para recibir tu asignación</p>
         
-        <button class="btn" onclick="iniciar_encuesta()" id="btnStart">Recibir Asignación</button>
-        
-        <div class="stats">
-            <strong>Participantes por grupo:</strong>
-            <div class="stats-grid">
-                <div class="stat-box">G1: <span id="count1">-</span></div>
-                <div class="stat-box">G2: <span id="count2">-</span></div>
-                <div class="stat-box">G3: <span id="count3">-</span></div>
-            </div>
-        </div>
-        
+<button class="btn" onclick="iniciar_encuesta()" id="btnStart">Recibir Asignación</button>
+         
         <p id="message"></p>
     </div>
 
@@ -116,27 +107,7 @@
         
         var form_seleccionado = '';
 
-        async function obtener_stats() {
-            try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?action=getStats`);
-                const data = await response.json();
-                return data.counts || [0, 0, 0];
-            } catch (e) { return [0, 0, 0]; }
-        }
-
-        function obtener_asignacion(cuentas) {
-            const menores = Math.min(...cuentas);
-            const disponibles = [];
-            for (let i = 0; i < 3; i++) {
-                if (cuentas[i] === menores && cuentas[i] < MAX_PER_GROUP) disponibles.push(i);
-            }
-            if (disponibles.length > 0) return disponibles[Math.floor(Math.random() * disponibles.length)];
-            const conEspacio = cuentas.map((c, i) => c < MAX_PER_GROUP ? i : -1).filter(i => i >= 0);
-            if (conEspacio.length === 0) return -1;
-            return conEspacio[Math.floor(Math.random() * conEspacio.length)];
-        }
-
-        async function iniciar_encuesta() {
+        function iniciar_encuesta() {
             const yaParticipo = localStorage.getItem(STORAGE_KEY);
             if (yaParticipo) {
                 document.getElementById('message').innerHTML = '<p class="error">⚠️ Ya has participado. ¡Gracias!</p>';
@@ -167,20 +138,6 @@
                     window.location.href = form_seleccionado;
                 }
             }, 1000);
-        }
-
-        async function cargar_stats() {
-            const cuentas = await obtener_stats();
-            document.getElementById('count1').textContent = cuentas[0];
-            document.getElementById('count2').textContent = cuentas[1];
-            document.getElementById('count3').textContent = cuentas[2];
-        }
-
-        cargar_stats();
-        setInterval(cargar_stats, 500);
-
-        function forzar_actualizacion() {
-            cargar_stats();
         }
     </script>
 </body>
