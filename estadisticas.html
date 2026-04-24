@@ -100,11 +100,27 @@
         </a>
         
         <p class="last-update" id="lastUpdate">Última actualización: --</p>
+        
+        <div style="text-align:center;margin-top:20px;">
+            <a href="index.html" style="background:rgba(0,212,255,0.2);color:#00d4ff;padding:12px 25px;border-radius:30px;text-decoration:none;font-size:0.9rem;">
+                📝 Ir a página de participación
+            </a>
+        </div>
+        
+        <p style="text-align:center;margin-top:15px;opacity:0.6;">
+            <a href="#" onclick="reset_local();return false;" style="color:#888;text-decoration:none;font-size:0.8rem;">🔄 Reiniciar prueba</a>
+        </p>
     </div>
 
     <script>
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4MCIfcjltQwb9LsCe_blZ82Fu3RvYdiXMKnHCwu3Ebc3XLdAcCCerfRA-qAPDjU-P/exec';
         const MAX_PER_GROUP = 35;
+        
+        function reset_local() {
+            localStorage.removeItem('enc_conf_participo');
+            alert('Prueba reiniciada. Ya puedes participar de nuevo.');
+            window.open('index.html', '_blank');
+        }
 
         async function obtener_stats() {
             try {
