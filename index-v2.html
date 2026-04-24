@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conferencia - Encuesta</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        h1 { font-size: 1.8rem; margin-bottom: 10px; color: #00d4ff; }
+        p { margin-bottom: 20px; line-height: 1.6; opacity: 0.9; }
+        .btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #1a1a2e;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .stats {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .stat-label { font-size: 0.8rem; opacity: 0.7; }
+        .progress-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            transition: width 0.5s;
+            border-radius: 4px;
+        }
+        .error { color: #ff6b6b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Encuesta de Conferencia</h1>
+        <p>Serás asignado a una de las 3 encuestas de forma aleatoria.</p>
+        
+        <div class="stats">
+            <strong>Participantes por grupo:</strong>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="count1">-</div>
+                    <div class="stat-label">Grupo 1</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="count2">-</div>
+                    <div class="stat-label">Grupo 2</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="count3">-</div>
+                    <div class="stat-label">Grupo 3</div>
+                </div>
+            </div>
+        </div>
+        
+        <br>
+        <button class="btn" id="startBtn" onclick="iniciar_encuesta()">Comenzar Encuesta</button>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        // ============= CONFIGURACIÓN =============
+        const SPREADSHEET_URL = 'TU_SPREADSHEET_URL_AQUI';
+        const FORMS = [
+            { url: 'https://forms.gle/M6tsnmDeKvXrgkon7', nombre: 'Encuesta 1' },
+            { url: 'https://forms.gle/ZFg4ST2yeXSJx5iU6', nombre: 'Encuesta 2' },
+            { url: 'https://forms.gle/YXhhqHYMcPffgT4N7', nombre: 'Encuesta 3' }
+        ];
+        const MAX_PER_GROUP = 35;
+        // =====================================
+
+        const STORAGE_KEY = 'encuesta_conf_ya_participo';
+        const API_KEY = 'TU_API_KEY'; // Obténla del Apps Script
+
+        async function obtener_stats() {
+            try {
+                const url = `https://script.google.com/macros/s/${API_KEY}/exec?action=getStats`;
+                const response = await fetch(url);
+                const data = await response.json();
+                return data;
+            } catch (e) {
+                console.log('Error obtaining stats:', e);
+                return { counts: [0, 0, 0] };
+            }
+        }
+
+        function obtener_asignacion(cuentas) {
+            const menores = Math.min(...cuentas);
+            const disponibles = [];
+            
+            for (let i = 0; i < 3; i++) {
+                if (cuentas[i] === menores && cuentas[i] < MAX_PER_GROUP) {
+                    disponibles.push(i);
+                }
+            }
+            
+            if (disponibles.length > 0) {
+                return disponibles[Math.floor(Math.random() * disponibles.length)];
+            }
+            
+            const conEspacio = [];
+            for (let i = 0; i < 3; i++) {
+                if (cuentas[i] < MAX_PER_GROUP) {
+                    conEspacio.push(i);
+                }
+            }
+            
+            if (conEspacio.length === 0) return -1;
+            return conEspacio[Math.floor(Math.random() * conEspacio.length)];
+        }
+
+        async function iniciar_encuesta() {
+            const yaParticipo = localStorage.getItem(STORAGE_KEY);
+            
+            if (yaParticipo) {
+                document.getElementById('message').innerHTML = 
+                    '<p class="error">⚠️ Ya has participado. ¡Gracias!</p>';
+                return;
+            }
+            
+            const stats = await obtener_stats();
+            const asignacion = obtener_asignacion(stats.counts);
+            
+            if (asignacion === -1) {
+                document.getElementById('message').innerHTML = 
+                    '<p class="error">⚠️ Lo sentimos, todas las encuestas están llenas.</p>';
+                return;
+            }
+            
+            localStorage.setItem(STORAGE_KEY, 'true');
+            window.location.href = FORMS[asignacion].url;
+        }
+
+        async function cargar_stats() {
+            const stats = await obtener_stats();
+            document.getElementById('count1').textContent = stats.counts[0];
+            document.getElementById('count2').textContent = stats.counts[1];
+            document.getElementById('count3').textContent = stats.counts[2];
+        }
+
+        cargar_stats();
+    </script>
+</body>
+</html>
