@@ -87,10 +87,6 @@
         </div>
         
         <p id="message"></p>
-        
-        <p style="margin-top:30px;opacity:0.5;font-size:0.8rem;">
-            <a href="#" onclick="reset_local();return false;" style="color:#666;text-decoration:none;">🔄 Reiniciar prueba</a>
-        </p>
     </div>
 
     <div class="container" id="pantalla-asignacion" style="display:none;">
@@ -196,11 +192,6 @@
         cargar_stats();
         setInterval(cargar_stats, 500);
 
-        function reset_local() {
-            localStorage.removeItem(STORAGE_KEY);
-            location.reload();
-        }
-        
         function forzar_actualizacion() {
             cargar_stats();
         }
