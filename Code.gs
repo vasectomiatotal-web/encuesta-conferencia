@@ -23,6 +23,8 @@ function doGet(e) {
   } else if (action === 'registrar') {
     const grupo = e.parameter.grupo;
     return registrar(grupo);
+  } else if (action === 'reset') {
+    return resetConteo();
   }
   
   return ContentService.createTextOutput(JSON.stringify({error: 'Acción no válida'}))
@@ -62,6 +64,24 @@ function registrar(grupo) {
     timeCell.setValue(new Date());
     
     return ContentService.createTextOutput(JSON.stringify({success: true, count: actual + 1}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (e) {
+    return ContentService.createTextOutput(JSON.stringify({success: false, error: e.message}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function resetConteo() {
+  try {
+    const sheet = getSheet();
+    sheet.getRange('B2').setValue(0);
+    sheet.getRange('B3').setValue(0);
+    sheet.getRange('B4').setValue(0);
+    sheet.getRange('C2').setValue('');
+    sheet.getRange('C3').setValue('');
+    sheet.getRange('C4').setValue('');
+    
+    return ContentService.createTextOutput(JSON.stringify({success: true}))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (e) {
     return ContentService.createTextOutput(JSON.stringify({success: false, error: e.message}))

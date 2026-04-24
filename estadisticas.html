@@ -13,27 +13,10 @@
             color: #fff;
             padding: 20px;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        h1 { 
-            text-align: center; 
-            font-size: 2rem; 
-            margin-bottom: 10px; 
-            color: #00d4ff; 
-        }
-        .subtitle { 
-            text-align: center; 
-            opacity: 0.7; 
-            margin-bottom: 30px; 
-        }
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; font-size: 2rem; margin-bottom: 10px; color: #00d4ff; }
+        .subtitle { text-align: center; opacity: 0.7; margin-bottom: 30px; }
+        .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
         .card {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
@@ -41,32 +24,11 @@
             padding: 30px;
             text-align: center;
             border: 1px solid rgba(255,255,255,0.2);
-            transition: transform 0.3s;
         }
-        .card:hover { transform: translateY(-5px); }
-        .card-number {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #00d4ff;
-        }
-        .card-label { 
-            font-size: 1.1rem; 
-            opacity: 0.8; 
-            margin-top: 10px; 
-        }
-        .progress-bar {
-            height: 10px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 5px;
-            margin-top: 15px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00d4ff, #00ff88);
-            transition: width 0.5s;
-            border-radius: 5px;
-        }
+        .card-number { font-size: 3rem; font-weight: bold; color: #00d4ff; }
+        .card-label { font-size: 1.1rem; opacity: 0.8; margin-top: 10px; }
+        .progress-bar { height: 10px; background: rgba(255,255,255,0.2); border-radius: 5px; margin-top: 15px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #00d4ff, #00ff88); transition: width 0.5s; border-radius: 5px; }
         .total {
             background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
             color: #1a1a2e;
@@ -75,12 +37,6 @@
             text-align: center;
             font-weight: bold;
             font-size: 1.3rem;
-        }
-        .last-update {
-            text-align: center;
-            opacity: 0.5;
-            font-size: 0.8rem;
-            margin-top: 20px;
         }
         .spreadsheet-link {
             display: block;
@@ -92,12 +48,24 @@
             color: #00d4ff;
             text-decoration: none;
         }
-        .spreadsheet-link:hover {
-            background: rgba(255,255,255,0.2);
+        .spreadsheet-link:hover { background: rgba(255,255,255,0.2); }
+        .reset-btn {
+            display: block;
+            margin: 20px auto;
+            background: #ff6b6b;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: all 0.3s;
         }
-        @media (max-width: 600px) {
-            .cards { grid-template-columns: 1fr; }
-        }
+        .reset-btn:hover { opacity: 1; transform: scale(1.02); }
+        .reset-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .last-update { text-align: center; opacity: 0.5; font-size: 0.8rem; margin-top: 20px; }
+        @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -123,11 +91,11 @@
             </div>
         </div>
         
-        <div class="total">
-            Total de participantes: <span id="total">0</span> / 105
-        </div>
+        <div class="total">Total de participantes: <span id="total">0</span> / 105</div>
         
-        <a href="#" class="spreadsheet-link" id="sheetLink" target="_blank">
+        <button class="reset-btn" id="resetBtn" onclick="reiniciar_conteo()">🔄 Reiniciar Conteos</button>
+        
+        <a href="https://docs.google.com/spreadsheets/d/1ShfyZ4HBDAFlg7gEXEoonsdDz7QatzXT1b_S87krEhA/edit" class="spreadsheet-link" target="_blank">
             📄 Ver hoja de cálculo completa
         </a>
         
@@ -135,11 +103,7 @@
     </div>
 
     <script>
-        // === IMPORTANTE: Reemplaza con tu URL del Apps Script ===
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwegyFt5sPAjF0ocC-66zBY7E_mRlLzkQHbi4MPJCoXripAAW5f71wex6XwmVdD6v-5/exec';
-        
-        // URL de tu Spreadsheet (opcional - para ver respuestas completas)
-        const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/1ShfyZ4HBDAFlg7gEXEoonsdDz7QatzXT1b_S87krEhA/edit';
         const MAX_PER_GROUP = 35;
 
         async function obtener_stats() {
@@ -155,30 +119,36 @@
 
         async function actualizar_estadisticas() {
             const cuentas = await obtener_stats();
-            
             document.getElementById('count1').textContent = cuentas[0];
             document.getElementById('count2').textContent = cuentas[1];
             document.getElementById('count3').textContent = cuentas[2];
-            
             document.getElementById('bar1').style.width = (cuentas[0] / MAX_PER_GROUP * 100) + '%';
             document.getElementById('bar2').style.width = (cuentas[1] / MAX_PER_GROUP * 100) + '%';
             document.getElementById('bar3').style.width = (cuentas[2] / MAX_PER_GROUP * 100) + '%';
-            
-            const total = cuentas[0] + cuentas[1] + cuentas[2];
-            document.getElementById('total').textContent = total;
-            
-            document.getElementById('lastUpdate').textContent = 
-                'Última actualización: ' + new Date().toLocaleTimeString();
+            document.getElementById('total').textContent = cuentas[0] + cuentas[1] + cuentas[2];
+            document.getElementById('lastUpdate').textContent = 'Última actualización: ' + new Date().toLocaleTimeString();
         }
 
-        // Iniciar
+        async function reiniciar_conteo() {
+            if (!confirm('¿Seguro que quieres reiniciar todos los conteos a 0?')) return;
+            
+            const btn = document.getElementById('resetBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Reiniciando...';
+            
+            try {
+                await fetch(`${APPS_SCRIPT_URL}?action=reset`);
+                await actualizar_estadisticas();
+                btn.textContent = '✅ ¡Reiniciado!';
+                setTimeout(() => { btn.textContent = '🔄 Reiniciar Conteos'; btn.disabled = false; }, 2000);
+            } catch (e) {
+                btn.textContent = '❌ Error';
+                btn.disabled = false;
+            }
+        }
+
         actualizar_estadisticas();
         setInterval(actualizar_estadisticas, 3000);
-        
-        // Configurar enlace de spreadsheet
-        if (SPREADSHEET_URL !== 'TU_SPREADSHEET_URL') {
-            document.getElementById('sheetLink').href = SPREADSHEET_URL;
-        }
     </script>
 </body>
 </html>
