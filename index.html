@@ -161,10 +161,8 @@
             // Asignar al grupo con menos participantes
             const asignacion = obtener_asignacion(cuentas);
             
-            // Registrar en el servidor
-            try {
-                await fetch(`${APPS_SCRIPT_URL}?action=registrar&grupo=${asignacion + 1}`);
-            } catch (e) { console.log('Error:', e); }
+            // Registrar en servidor SIN esperar respuesta (más rápido)
+            fetch(`${APPS_SCRIPT_URL}?action=registrar&grupo=${asignacion + 1}`).catch(()=>{});
 
             localStorage.setItem(STORAGE_KEY, 'true');
 
