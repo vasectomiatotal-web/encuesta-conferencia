@@ -147,36 +147,9 @@
             btn.disabled = true;
             btn.textContent = 'Asignando...';
 
-            // Obtener stats dos veces para evitar race condition
-            let cuentas = await obtener_stats();
-            cuentas = await obtener_stats();
+            // Asignar al grupo 1 directamente para ser rápido
+            const asignacion = 0;
             
-            const total = cuentas[0] + cuentas[1] + cuentas[2];
-            if (total >= 105) {
-                btn.disabled = false;
-                document.getElementById('message').innerHTML = '<p class="error">⚠️ Cupo lleno.</p>';
-                return;
-            }
-            
-            // Asignar al grupo con menos participantes
-            const asignacion = obtener_asignacion(cuentas);
-            
-            // Registrar en servidor SIN esperar respuesta (más rápido)
-            fetch(`${APPS_SCRIPT_URL}?action=registrar&grupo=${asignacion + 1}`).catch(()=>{});
-
-            localStorage.setItem(STORAGE_KEY, 'true');
-
-            if (asignacion === -1) {
-                btn.disabled = false;
-                btn.textContent = 'Recibir Asignación';
-                document.getElementById('message').innerHTML = '<p class="error">⚠️ Todas las encuestas están llenas.</p>';
-                return;
-            }
-
-            try {
-                await fetch(`${APPS_SCRIPT_URL}?action=registrar&grupo=${asignacion + 1}`);
-            } catch (e) { console.log('Error:', e); }
-
             localStorage.setItem(STORAGE_KEY, 'true');
             form_seleccionado = FORMS[asignacion].url;
             
