@@ -101,7 +101,11 @@
         </div>
         
         <p>Serás redirigido automáticamente a la encuesta...</p>
-        <p class="loading" id=" countdown">Redirecting in 3...</p>
+        <p class="loading" id="countdown">Redirecting in 3...</p>
+        
+        <a id="link-fallo" href="#" style="display:none;background:linear-gradient(135deg,#00d4ff,#0099cc);color:#1a1a2e;padding:15px 30px;border-radius:50px;text-decoration:none;font-weight:bold;">
+            📝 Ir a la Encuesta Ahora
+        </a>
     </div>
 
     <script>
@@ -113,6 +117,8 @@
         const MAX_PER_GROUP = 35;
         const STORAGE_KEY = 'enc_conf_participo';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4MCIfcjltQwb9LsCe_blZ82Fu3RvYdiXMKnHCwu3Ebc3XLdAcCCerfRA-qAPDjU-P/exec';
+        
+        var form_seleccionado = '';
 
         async function obtener_stats() {
             try {
@@ -160,11 +166,14 @@
             } catch (e) { console.log('Error:', e); }
 
             localStorage.setItem(STORAGE_KEY, 'true');
-
+            form_seleccionado = FORMS[asignacion].url;
+            
             document.getElementById('pantalla-inicio').style.display = 'none';
             document.getElementById('pantalla-asignacion').style.display = 'block';
             document.getElementById('numGrupo').textContent = asignacion + 1;
             document.getElementById('nombreGrupo').textContent = FORMS[asignacion].nombre;
+            document.getElementById('link-fallo').href = form_seleccionado;
+            document.getElementById('link-fallo').style.display = 'inline-block';
 
             let countdown = 3;
             const timer = setInterval(() => {
@@ -172,7 +181,7 @@
                 document.getElementById('countdown').textContent = `Redirecting in ${countdown}...`;
                 if (countdown <= 0) {
                     clearInterval(timer);
-                    window.location.href = FORMS[asignacion].url;
+                    window.location.href = form_seleccionado;
                 }
             }, 1000);
         }
@@ -185,11 +194,15 @@
         }
 
         cargar_stats();
-        setInterval(cargar_stats, 2000);
+        setInterval(cargar_stats, 500);
 
         function reset_local() {
             localStorage.removeItem(STORAGE_KEY);
             location.reload();
+        }
+        
+        function forzar_actualizacion() {
+            cargar_stats();
         }
     </script>
 </body>
