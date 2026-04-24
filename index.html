@@ -96,8 +96,8 @@
             <span id="nombreGrupo"></span>
         </div>
         
-        <p>Serás redirigido automáticamente a la encuesta...</p>
-        <p class="loading" id="countdown">Redirecting in 3...</p>
+        <p>Te了一眼ns redirigido automáticamente a la encuesta...</p>
+        <p class="loading" id="countdown">Redirecting in 1...</p>
         
         <a id="link-fallo" href="#" style="display:none;background:linear-gradient(135deg,#00d4ff,#0099cc);color:#1a1a2e;padding:15px 30px;border-radius:50px;text-decoration:none;font-weight:bold;">
             📝 Ir a la Encuesta Ahora
@@ -147,8 +147,26 @@
             btn.disabled = true;
             btn.textContent = 'Asignando...';
 
-            const cuentas = await obtener_stats();
+            // Obtener stats dos veces para evitar race condition
+            let cuentas = await obtener_stats();
+            cuentas = await obtener_stats();
+            
+            const total = cuentas[0] + cuentas[1] + cuentas[2];
+            if (total >= 105) {
+                btn.disabled = false;
+                document.getElementById('message').innerHTML = '<p class="error">⚠️ Cupo lleno.</p>';
+                return;
+            }
+            
+            // Asignar al grupo con menos participantes
             const asignacion = obtener_asignacion(cuentas);
+            
+            // Registrar en el servidor
+            try {
+                await fetch(`${APPS_SCRIPT_URL}?action=registrar&grupo=${asignacion + 1}`);
+            } catch (e) { console.log('Error:', e); }
+
+            localStorage.setItem(STORAGE_KEY, 'true');
 
             if (asignacion === -1) {
                 btn.disabled = false;
@@ -168,10 +186,8 @@
             document.getElementById('pantalla-asignacion').style.display = 'block';
             document.getElementById('numGrupo').textContent = asignacion + 1;
             document.getElementById('nombreGrupo').textContent = FORMS[asignacion].nombre;
-            document.getElementById('link-fallo').href = form_seleccionado;
-            document.getElementById('link-fallo').style.display = 'inline-block';
 
-            let countdown = 3;
+            let countdown = 1;
             const timer = setInterval(() => {
                 countdown--;
                 document.getElementById('countdown').textContent = `Redirecting in ${countdown}...`;
