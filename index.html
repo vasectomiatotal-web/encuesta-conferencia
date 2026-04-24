@@ -117,10 +117,8 @@
             const btn = document.getElementById('btnStart');
             btn.disabled = true;
 
-            // Contador local de asignaciones
-            let conteo = parseInt(localStorage.getItem('conteo_grupo') || '0');
-            let asignacion = conteo % 3; // 0, 1, 2, 0, 1, 2...
-            localStorage.setItem('conteo_grupo', conteo + 1);
+            // Asignar aleatoriamente (más robusto cuando todos entran al mismo tiempo)
+            const asignacion = Math.floor(Math.random() * 3);
             
             localStorage.setItem(STORAGE_KEY, 'true');
             form_seleccionado = FORMS[asignacion].url;
