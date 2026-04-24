@@ -147,8 +147,8 @@
             btn.disabled = true;
             btn.textContent = 'Asignando...';
 
-            // Asignar al grupo 1 directamente para ser rápido
-            const asignacion = 0;
+            // Asignar aleatoriamente de forma instantánea (0, 1, o 2)
+            const asignacion = Math.floor(Math.random() * 3);
             
             localStorage.setItem(STORAGE_KEY, 'true');
             form_seleccionado = FORMS[asignacion].url;
