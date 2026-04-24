@@ -116,10 +116,11 @@
 
             const btn = document.getElementById('btnStart');
             btn.disabled = true;
-            btn.textContent = 'Asignando...';
 
-            // Asignar aleatoriamente de forma instantánea (0, 1, o 2)
-            const asignacion = Math.floor(Math.random() * 3);
+            // Contador local de asignaciones
+            let conteo = parseInt(localStorage.getItem('conteo_grupo') || '0');
+            let asignacion = conteo % 3; // 0, 1, 2, 0, 1, 2...
+            localStorage.setItem('conteo_grupo', conteo + 1);
             
             localStorage.setItem(STORAGE_KEY, 'true');
             form_seleccionado = FORMS[asignacion].url;
