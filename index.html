@@ -25,168 +25,152 @@
             width: 100%;
             text-align: center;
             border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         h1 { font-size: 1.8rem; margin-bottom: 10px; color: #00d4ff; }
         p { margin-bottom: 20px; line-height: 1.6; opacity: 0.9; }
+        
         .btn {
             background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
             color: #1a1a2e;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.1rem;
+            padding: 18px 50px;
+            font-size: 1.2rem;
             border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s;
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
-        }
-        .stats {
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 10px;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .stat-box {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 8px;
-        }
-        .stat-number {
+        .btn:hover { transform: scale(1.05); box-shadow: 0 10px 40px rgba(0,212,255,0.5); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .grupo-asignado {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #1a1a2e;
+            padding: 30px;
+            border-radius: 15px;
             font-size: 1.5rem;
             font-weight: bold;
-            color: #00d4ff;
+            margin: 20px 0;
+            animation: pulse 1s infinite;
         }
-        .stat-label { font-size: 0.8rem; opacity: 0.7; }
-        .error { color: #ff6b6b; }
-        .loading {
-            display: none;
-            margin-top: 20px;
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
-        .loading.active { display: block; }
+        
+        .stats { margin-top: 30px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .stats-grid { display: flex; justify-content: center; gap: 20px; margin-top: 10px; }
+        .stat-box { background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; }
+        .stat-number { font-size: 1.3rem; font-weight: bold; color: #00d4ff; }
+        
+        .error { color: #ff6b6b; font-size: 1.1rem; }
+        .success { color: #00ff88; font-size: 1.1rem; }
+        
+        .loading { font-size: 1.2rem; color: #ffd700; margin-top: 20px; }
+        .loading.hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="pantalla-inicio">
         <h1>🎤 Encuesta de Conferencia</h1>
-        <p>Serás asignado a una de las 3 encuestas de forma aleatoria.</p>
+        <p>Click en el botón para recibir tu asignación</p>
+        
+        <button class="btn" onclick="iniciar_encuesta()" id="btnStart">Recibir Asignación</button>
         
         <div class="stats">
             <strong>Participantes por grupo:</strong>
             <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-number" id="count1">-</div>
-                    <div class="stat-label">Grupo 1</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-number" id="count2">-</div>
-                    <div class="stat-label">Grupo 2</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-number" id="count3">-</div>
-                    <div class="stat-label">Grupo 3</div>
-                </div>
+                <div class="stat-box">G1: <span id="count1">-</span></div>
+                <div class="stat-box">G2: <span id="count2">-</span></div>
+                <div class="stat-box">G3: <span id="count3">-</span></div>
             </div>
         </div>
         
-        <br>
-        <button class="btn" id="startBtn" onclick="iniciar_encuesta()">Comenzar Encuesta</button>
         <p id="message"></p>
-        <p class="loading" id="loading">⏳ Asignándote a un grupo...</p>
+    </div>
+
+    <div class="container" id="pantalla-asignacion" style="display:none;">
+        <h1>✅ ¡Te tocó el Grupo <span id="numGrupo"></span>!</h1>
+        
+        <div class="grupo-asignado">
+            <span id="nombreGrupo"></span>
+        </div>
+        
+        <p>Serás redirigido automáticamente a la encuesta...</p>
+        <p class="loading" id=" countdown">Redirecting in 3...</p>
     </div>
 
     <script>
-        // ============= CONFIGURACIÓN =============
         const FORMS = [
             { url: 'https://forms.gle/M6tsnmDeKvXrgkon7', nombre: 'Encuesta 1' },
             { url: 'https://forms.gle/ZFg4ST2yeXSJx5iU6', nombre: 'Encuesta 2' },
             { url: 'https://forms.gle/YXhhqHYMcPffgT4N7', nombre: 'Encuesta 3' }
         ];
         const MAX_PER_GROUP = 35;
-        const STORAGE_KEY = 'encuesta_conf_ya_participo';
-        
-        // === IMPORTANTE: Reemplaza con tu URL del Apps Script ===
-        // El URL se ve como: https://script.google.com/macros/s/XXXXXX/exec
+        const STORAGE_KEY = 'enc_conf_participo';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4MCIfcjltQwb9LsCe_blZ82Fu3RvYdiXMKnHCwu3Ebc3XLdAcCCerfRA-qAPDjU-P/exec';
-        // ====================================================
 
         async function obtener_stats() {
             try {
                 const response = await fetch(`${APPS_SCRIPT_URL}?action=getStats`);
                 const data = await response.json();
                 return data.counts || [0, 0, 0];
-            } catch (e) {
-                console.log('Error:', e);
-                return [0, 0, 0];
-            }
+            } catch (e) { return [0, 0, 0]; }
         }
 
         function obtener_asignacion(cuentas) {
             const menores = Math.min(...cuentas);
             const disponibles = [];
-            
             for (let i = 0; i < 3; i++) {
-                if (cuentas[i] === menores && cuentas[i] < MAX_PER_GROUP) {
-                    disponibles.push(i);
-                }
+                if (cuentas[i] === menores && cuentas[i] < MAX_PER_GROUP) disponibles.push(i);
             }
-            
-            if (disponibles.length > 0) {
-                return disponibles[Math.floor(Math.random() * disponibles.length)];
-            }
-            
-            const conEspacio = [];
-            for (let i = 0; i < 3; i++) {
-                if (cuentas[i] < MAX_PER_GROUP) {
-                    conEspacio.push(i);
-                }
-            }
-            
+            if (disponibles.length > 0) return disponibles[Math.floor(Math.random() * disponibles.length)];
+            const conEspacio = cuentas.map((c, i) => c < MAX_PER_GROUP ? i : -1).filter(i => i >= 0);
             if (conEspacio.length === 0) return -1;
             return conEspacio[Math.floor(Math.random() * conEspacio.length)];
         }
 
         async function iniciar_encuesta() {
             const yaParticipo = localStorage.getItem(STORAGE_KEY);
-            
             if (yaParticipo) {
-                document.getElementById('message').innerHTML = 
-                    '<p class="error">⚠️ Ya has participado. ¡Gracias!</p>';
+                document.getElementById('message').innerHTML = '<p class="error">⚠️ Ya has participado. ¡Gracias!</p>';
                 return;
             }
-            
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('loading').classList.add('active');
-            
+
+            const btn = document.getElementById('btnStart');
+            btn.disabled = true;
+            btn.textContent = 'Asignando...';
+
             const cuentas = await obtener_stats();
             const asignacion = obtener_asignacion(cuentas);
-            
+
             if (asignacion === -1) {
-                document.getElementById('message').innerHTML = 
-                    '<p class="error">⚠️ Lo sentimos, todas las encuestas están llenas.</p>';
-                document.getElementById('startBtn').disabled = false;
-                document.getElementById('loading').classList.remove('active');
+                btn.disabled = false;
+                btn.textContent = 'Recibir Asignación';
+                document.getElementById('message').innerHTML = '<p class="error">⚠️ Todas las encuestas están llenas.</p>';
                 return;
             }
-            
-            // Registrar en el servidor
+
             try {
                 await fetch(`${APPS_SCRIPT_URL}?action=registrar&grupo=${asignacion + 1}`);
-            } catch (e) {
-                console.log('Error registering:', e);
-            }
-            
+            } catch (e) { console.log('Error:', e); }
+
             localStorage.setItem(STORAGE_KEY, 'true');
-            window.location.href = FORMS[asignacion].url;
+
+            document.getElementById('pantalla-inicio').style.display = 'none';
+            document.getElementById('pantalla-asignacion').style.display = 'block';
+            document.getElementById('numGrupo').textContent = asignacion + 1;
+            document.getElementById('nombreGrupo').textContent = FORMS[asignacion].nombre;
+
+            let countdown = 3;
+            const timer = setInterval(() => {
+                countdown--;
+                document.getElementById('countdown').textContent = `Redirecting in ${countdown}...`;
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    window.location.href = FORMS[asignacion].url;
+                }
+            }, 1000);
         }
 
         async function cargar_stats() {
@@ -197,7 +181,7 @@
         }
 
         cargar_stats();
-        setInterval(cargar_stats, 3000);
+        setInterval(cargar_stats, 2000);
     </script>
 </body>
 </html>
